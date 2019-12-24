@@ -1,28 +1,54 @@
 from mendeleev import element
 import numpy as np
 
+import sys
 import csv
 import re
 
-NUM_ELEMENTS = 100
-
-file_path = './Data/Supercon_data.csv'
-
-
-
 def compound_to_array(compound_name, NUM_ELEMENTS):
-    print(compound_name)
     one_hot = np.eye(NUM_ELEMENTS)
     data = []
-    for s in compound_name:
-        if s.isnumeric() or '.' in s:
-            data[-1].append(float(s))
+
+    i = 0
+    while i < len(compound_name):
+        s = compound_name[i]
+        if i+1 == len(compound_name):
+            n = '1' #if at end then number is 1
         else:
-            i = element(s).atomic_number
-            data.append(list(one_hot[i]))
+            n = compound_name[i+1]
+
+        if n.isnumeric() or '.' in n:
+            N = float(n)
+            i += 1
+        else:
+            N = 1
+
+
+        if s == 'T':
+            return np.array([])
+        if s == 'D':
+            i+=1
+            data.append(np.append(one_hot[0],N))
+            continue
+
+        try:
+            id = element(s).atomic_number
+        except:
+            print("FAILED")
+            print(s)
+            print(compound_name)
+            print()
+            sys.exit("Unknown Element")
+
+        data.append(np.append(one_hot[id],N))
+
+        i += 1
     return np.array(data)
 
-def load_data(path, NUM_ELEMENTS = NUM_ELEMENTS):
+def split_compound_string(comp):
+    return re.findall('[\d.]+|[A-Z][a-z]*', comp)
+
+def load_data(file_path, NUM_ELEMENTS=100):
 
     reader = csv.reader(open(file_path, 'r'))
 
@@ -30,22 +56,30 @@ def load_data(path, NUM_ELEMENTS = NUM_ELEMENTS):
     temperatures = []
 
     for row in reader:
-       comp, temp = row
-       compound_names.append(comp)
-       temperatures.append(temp)
+        comp, temp = row
+        if temp == 'Tc': #first row
+            continue
+        compound_names.append(comp)
+        temperatures.append(float(temp))
 
-
+    #compound_names = compound_names[:100]
 
     inputs = []
-
+    size = len(compound_names)
+    print("DATA SIZE: ", size)
+    BAR = 50
     for i,comp in enumerate(compound_names):
+        prog = int(i/size * BAR)
+        print("LOADING |" + '#'* prog + ' '*(BAR-prog) + "|", str(i) + "/" + str(size) + "   ", end='\r')
         if 'OY' in comp:
-            #print("NAME: ", comp, " " * (40 - len(comp)) + "TEMP: ", temperatures[i])
             continue
-        split = re.findall('[\d.]+|[A-Z][a-z]*', comp)
+        if '+' in comp:
+            continue
 
-        inputs.append(compound_to_array(split, NUM_ELEMENTS))
+        split = split_compound_string(comp)
 
-    return np.array(inputs), np.array(labels)
+        arr = compound_to_array(split, NUM_ELEMENTS)
+        if not len(arr) == 0:
+            inputs.append(arr)
 
-load_data(file_path)
+    return np.array(inputs), np.array(temperatures)
