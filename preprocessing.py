@@ -42,7 +42,19 @@ def compound_to_array(compound_name, NUM_ELEMENTS):
             sys.exit("Unknown Element")
 
         _id = ele.atomic_number
-        other = [N,ele.atomic_weight,ele.atomic_volume,ele.charge,ele.ionic_radius,ele.group_id,ele.electron_affinity,ele.en_pauling,ele.en_ghosh,ele.en_allen,ele.covalent_radius_bragg]
+        other = [N,ele.atomic_weight]
+        other.append(ele.atomic_volume)
+        other.append(ele.atomic_radius)
+        other.append(ele.charge)
+        other.append(ele.ionic_radius)
+        other.append(ele.group_id)
+        other.append(ele.electron_affinity)
+        other.append(ele.en_pauling)
+        other.append(ele.en_ghosh)
+        other.append(ele.en_allen)
+        other.append(ele.covalent_radius_bragg)
+        other.append(ele.heat_of_formation)
+
         comp_vect = np.append(one_hot[id],np.array(other))
         data.append(comp_vect)
 
