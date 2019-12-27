@@ -25,15 +25,15 @@ class Model(tf.keras.Model):
         self.activation = layers.LeakyReLU()
 
         self.dense_1 = layers.Dense(1000,activation=self.activation, dtype="float32")
-        self.dense_2 = layers.Dense(1000,activation=self.activation, dtype="float32")
-        self.dense_3 = layers.Dense(500,activation=self.activation, dtype="float32")
+        #self.dense_2 = layers.Dense(1000,activation=self.activation, dtype="float32")
+        #self.dense_3 = layers.Dense(500,activation=self.activation, dtype="float32")
         self.dense_4 = layers.Dense(1,activation="relu", dtype="float32")
 
     def call(self, inputs, initial_state):
         inputs, *next_state = self.GRU(inputs, initial_state=initial_state)
         inputs = self.dense_1(inputs)
-        inputs = self.dense_2(inputs)
-        inputs = self.dense_3(inputs)
+        #inputs = self.dense_2(inputs)
+        #inputs = self.dense_3(inputs)
         inputs = self.dense_4(inputs)
         return inputs, next_state
 
@@ -60,10 +60,12 @@ def train(model,train_inputs,train_labels):
                     predictions, _ = model.call(conv(batch_inputs[i]),initial_state)
                 loss += tf.reduce_sum(model.loss(predictions,conv(batch_labels[i])))
 
+        print("BATCH_LOSS: ", loss, " "*20, end='\r')
         gradients = tape.gradient(loss,model.trainable_variables)
         model.optimizer.apply_gradients(zip(gradients,model.trainable_variables))
 
         batch_start += model.batch_size
+    print()
 
 
 def test(model,test_inputs,test_labels):
@@ -122,16 +124,17 @@ def main():
 
     train_inputs, train_labels, test_inputs, test_labels = prepare_training_testing_data()
     model = Model()
-    for epoch in range(1000):
+    for epoch in range(15):
         print("EPOCH: ",epoch)
         train(model,train_inputs,train_labels)
-        if epoch % 10 == 0:
-            loss = test(model,test_inputs,test_labels)
-            loss_list.append(loss)
-            plt.plot(loss_list)
-            plt.draw()
-            plt.pause(.001)
-            plt.cla()
+
+        loss = test(model,test_inputs,test_labels)
+        print("TEST LOSS: ",loss)
+        loss_list.append(loss)
+        plt.plot(loss_list)
+        plt.draw()
+        plt.pause(.001)
+        plt.cla()
 
 
 

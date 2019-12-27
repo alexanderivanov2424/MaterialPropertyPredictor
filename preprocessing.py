@@ -27,12 +27,13 @@ def compound_to_array(compound_name, NUM_ELEMENTS):
         if s == 'T':
             return np.array([])
         if s == 'D':
-            i+=1
-            data.append(np.append(one_hot[0],N))
-            continue
+            return np.array([])
+            # i+=1
+            # data.append(np.append(one_hot[0],N))
+            # continue
 
         try:
-            id = element(s).atomic_number
+            ele = element(s)
         except:
             print("FAILED")
             print(s)
@@ -40,7 +41,10 @@ def compound_to_array(compound_name, NUM_ELEMENTS):
             print()
             sys.exit("Unknown Element")
 
-        data.append(np.append(one_hot[id],N))
+        _id = ele.atomic_number
+        other = [N,ele.atomic_weight,ele.atomic_volume,ele.charge,ele.ionic_radius,ele.group_id,ele.electron_affinity,ele.en_pauling,ele.en_ghosh,ele.en_allen,ele.covalent_radius_bragg]
+        comp_vect = np.append(one_hot[id],np.array(other))
+        data.append(comp_vect)
 
         i += 1
     return np.array(data)
